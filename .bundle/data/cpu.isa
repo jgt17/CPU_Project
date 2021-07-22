@@ -1,0 +1,25 @@
+# Describes the instruction set of the cpu
+# Format is:
+# \x[opcode in hex] = [name](,[arg])+ # [Comment describing opcode]
+
+[Metadata]
+name = my_cpu_1
+
+[Instruction Groups]
+# opcode specified assumes group bits replaced with 0's
+# specify which bits are group bits by following opcode with, eg ", 01DDDSSS"
+# group args replaced by the associated value
+# eg, the entry for the set of instructions for moving data between registers would look like
+# \x40, 01DDDSSS = mov {r1}, {r2}
+# and would be interpreted as
+# \x40 = mov b, b
+# \x41 = mov b, c
+# etc
+# {} indicates a grouping arg, [] indicates an arg to the opcode itself
+# (something that would be an extra byte in the instruction)
+DDD, SSS = {111: A, 000: B, 001: C, 010: D, 011: E, 100: H, 101: L}
+NNN = {000: 0, 001: 1, 010: 2, 011: 3, 100: 4, 101: 5, 110: 6, 111: 7}
+
+[Instructions]
+\x00 = nop                          # No operation
+\x40, 01DDDSSS = mov {r1}, {r2}     # move the contents of r2 to r1

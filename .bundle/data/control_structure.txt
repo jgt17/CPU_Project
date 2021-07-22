@@ -1,0 +1,21 @@
+# defines the organization of the CPU control lines
+
+# general parameters
+# num stages, etc
+cpu_name = my_homebrew_cpu
+stages = 1
+rom_bit_width = 8
+rom_address_bits = 13
+
+[Status Lines]
+# Opcode, opflags
+# [Name] = [bit_pos], (size)
+
+OPCODE = 0, 8
+EXPANDED_INSTRUCTION_SET = 8, 1
+
+[Control Lines]
+# [Name] = [stage], [bit_pos], (size)
+
+# Stage 0: Primary Fetch
+PC_INCR_AMOUNT = 0, 0, 3
