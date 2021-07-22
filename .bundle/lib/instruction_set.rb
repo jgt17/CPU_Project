@@ -4,7 +4,11 @@ require 'parseconfig'
 
 # models the instruction set of the CPU
 class InstructionSet
+  attr_reader :metadata
   attr_reader :groupings
+  attr_reader :instructions
+
+  EXPECTED_METADATA = %w[name].freeze
 
   def initialize(isa)
     initialize_from_file(isa) if isa.is_a? String
@@ -17,8 +21,21 @@ class InstructionSet
   def initialize_from_file(filename)
     valid_filename?(filename)
     isa = ParseConfig.new(filename)
+    add_metadata(isa.params['Metadata'])
     add_groupings(isa.params['Instruction Groups'])
+    add_instructions(isa.params['Instructions'])
     # validate_instructions
+  end
+
+  def add_metadata(meta)
+    # easy access for a few, expected, common values
+    EXPECTED_METADATA.each do |data_name|
+      instance_variable_set("@#{data_name}", meta[data_name]) if meta
+      self.class.attr_reader(data_name.to_s)
+    end
+
+    # arbitrary metadata
+    @metadata = meta.clone
   end
 
   def add_groupings(raw_groups)
@@ -32,6 +49,39 @@ class InstructionSet
         @groups[name] = group if valid_group?(name, group)
       end
     end
+  end
+
+  def add_instructions(raw_instructions)
+    @instructions = {}
+    group_marker = ', '
+    raw_instructions.each do |opcode, mnemonic|
+      mnemonic.gsub!(/[\s]*#[\s\S]*/, '') # remove comments
+      if opcode.match(group_marker)
+        add_instruction_group(opcode.split(/[, ]+/)[1], mnemonic)
+      else
+        add_instruction(opcode, mnemonic)
+      end
+    end
+    puts @instructions
+  end
+
+  def add_instruction_group(pattern, mnemonic)
+    first = nil
+    index = pattern.length
+    @groups.each_key do |group|
+      next unless pattern.include?(group) && pattern.index(group) < index
+
+      first = group
+      index = pattern.index(group)
+    end
+    return add_instruction(pattern, mnemonic) unless first
+
+    @groups[first].each { |bits, arg| add_instruction_group(pattern.sub(first, bits), mnemonic.sub(/{\w+}/, arg)) }
+  end
+
+  def add_instruction(opcode, mnemonic)
+    opcode = opcode.to_i(opcode.include?('\x') ? 16 : 2) # accept binary and hex opcodes
+    @instructions[opcode] = mnemonic
   end
 
   def extract_hash(string)
@@ -60,4 +110,5 @@ class InstructionSet
   end
 end
 
-InstructionSet.new('../data/cpu.isa')
+b = InstructionSet.new('../data/cpu.isa')
+p b

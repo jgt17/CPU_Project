@@ -17,6 +17,7 @@ name = my_cpu_1
 # etc
 # {} indicates a grouping arg, [] indicates an arg to the opcode itself
 # (something that would be an extra byte in the instruction)
+# note that the first group in the opcode encoding is assumed to be associated with the first arg
 DDD, SSS = {111: A, 000: B, 001: C, 010: D, 011: E, 100: H, 101: L}
 NNN = {000: 0, 001: 1, 010: 2, 011: 3, 100: 4, 101: 5, 110: 6, 111: 7}
 
