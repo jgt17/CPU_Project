@@ -1,45 +1,26 @@
 # frozen_string_literal: true
 
 require 'parseconfig'
+require_relative 'configurable'
 
 # models the instruction set of the CPU
 class InstructionSet
-  attr_reader :metadata
-  attr_reader :groupings
+  include Configurable
+  REQUIRED_PARAMETERS = %i[isa_name word_size].freeze
+  OPTIONAL_PARAMETERS = %i[].freeze
+  STRING_PARAMETERS = %i[isa_name].freeze
+
+  DATA_PARAMETERS = %i[groups instructions].freeze
+  GENERATED_DATA = %i[unused_opcodes].freeze
+
+  attr_reader :groups
   attr_reader :instructions
-
-  EXPECTED_METADATA = %w[name].freeze
-
-  def initialize(isa)
-    initialize_from_file(isa) if isa.is_a? String
-    raise 'Can only build a Instruction Set from a file right now.' unless isa.is_a? String
-  end
+  attr_reader :isa_name
+  attr_reader :word_size
 
   private
 
-  # parses a control scheme specification from a file and initializes it
-  def initialize_from_file(filename)
-    valid_filename?(filename)
-    isa = ParseConfig.new(filename)
-    add_metadata(isa.params['Metadata'])
-    add_groupings(isa.params['Instruction Groups'])
-    add_instructions(isa.params['Instructions'])
-    # validate_instructions
-  end
-
-  def add_metadata(meta)
-    # easy access for a few, expected, common values
-    EXPECTED_METADATA.each do |data_name|
-      instance_variable_set("@#{data_name}", meta[data_name]) if meta
-      self.class.attr_reader(data_name.to_s)
-    end
-
-    # arbitrary metadata
-    @metadata = meta.clone
-  end
-
-  def add_groupings(raw_groups)
-    @groups = {}
+  def add_groups(raw_groups)
     return if raw_groups.nil?
 
     raw_groups.each do |key, value|
@@ -52,17 +33,13 @@ class InstructionSet
   end
 
   def add_instructions(raw_instructions)
-    @instructions = {}
-    group_marker = ', '
+    group_marker = /[, ]+/
     raw_instructions.each do |opcode, mnemonic|
       mnemonic.gsub!(/[\s]*#[\s\S]*/, '') # remove comments
-      if opcode.match(group_marker)
-        add_instruction_group(opcode.split(/[, ]+/)[1], mnemonic)
-      else
-        add_instruction(opcode, mnemonic)
-      end
+      next add_instruction(opcode, mnemonic) unless opcode.match(group_marker)
+
+      add_instruction_group(opcode.split(group_marker)[1], mnemonic)
     end
-    puts @instructions
   end
 
   def add_instruction_group(pattern, mnemonic)
@@ -81,7 +58,7 @@ class InstructionSet
 
   def add_instruction(opcode, mnemonic)
     opcode = opcode.to_i(opcode.include?('\x') ? 16 : 2) # accept binary and hex opcodes
-    @instructions[opcode] = mnemonic
+    @instructions[opcode] = mnemonic # TODO: implement instruction class
   end
 
   def extract_hash(string)
@@ -108,7 +85,16 @@ class InstructionSet
 
     true
   end
+
+  def format_instructions
+    @instructions.sort.map { |op, mem| "#{op.to_s(2).rjust(@word_size, '0').insert(4, ' ')}: #{mem}" }.join "\n"
+  end
+
+  def format_unused_opcodes
+    @instructions.keys
+    ''
+  end
 end
 
 b = InstructionSet.new('../data/cpu.isa')
-p b
+puts b

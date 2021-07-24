@@ -3,11 +3,11 @@
 require 'parseconfig'
 require 'set'
 require_relative 'signal_line'
-require_relative 'control_scheme_validator'
+require_relative 'control_scheme_validation'
 
 # models the control structure of the CPU
 class ControlScheme
-  include ControlSchemeValidator
+  include ControlSchemeValidation
 
   REQUIRED_PARAMETERS = %i[@stages @rom_bit_width @rom_address_bits @control_lines @status_lines].freeze
   OPTIONAL_PARAMETERS = %i[@rom_counts @cpu_name].freeze
@@ -35,14 +35,14 @@ class ControlScheme
   def to_s
     return @string if @string
 
-    s =  "=== Control Scheme ===\n"
+    s =  "=== CONTROL SCHEME ===\n"
     s += "Name: #{@cpu_name}\n" if @cpu_name
     s += "Stages: #{@stages}\n"
     s += "Microcode ROMs: 2^#{@rom_address_bits} x #{@rom_bit_width}\n\n"
     s += "== Status Lines: ==\n"
     s += format_status_lines
     s += "\n== Control Lines: ==\n"
-    @string = s +  format_control_lines
+    @string = s + format_control_lines
   end
 
   private

@@ -3,9 +3,10 @@
 # \x[opcode in hex] = [name](,[arg])+ # [Comment describing opcode]
 
 [Metadata]
-name = my_cpu_1
+isa_name = my_cpu_1
+word_size = 8
 
-[Instruction Groups]
+[Groups]
 # opcode specified assumes group bits replaced with 0's
 # specify which bits are group bits by following opcode with, eg ", 01DDDSSS"
 # group args replaced by the associated value
@@ -18,7 +19,7 @@ name = my_cpu_1
 # {} indicates a grouping arg, [] indicates an arg to the opcode itself
 # (something that would be an extra byte in the instruction)
 # note that the first group in the opcode encoding is assumed to be associated with the first arg
-DDD, SSS = {111: A, 000: B, 001: C, 010: D, 011: E, 100: H, 101: L}
+DDD, SSS = {111: a, 000: b, 001: c, 010: d, 011: e, 100: h, 101: l}
 NNN = {000: 0, 001: 1, 010: 2, 011: 3, 100: 4, 101: 5, 110: 6, 111: 7}
 
 [Instructions]

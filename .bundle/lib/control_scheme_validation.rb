@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 # methods for validating a control scheme
-module ControlSchemeValidator
+module ControlSchemeValidation
+  include ConfigValidation
   # verify that the specified config is valid, eg, has all expected params, no extra params, and signal lines are unique
   def validate_config
     pass = expected_params?
@@ -13,26 +14,6 @@ module ControlSchemeValidator
     pass = status_signals_in_bounds? && pass
     abort('Invalid Control Scheme!') unless pass
     roms_split_signal? # a signal spanning multiple ROMs isn't a critical error, just potentially annoying
-  end
-
-  def expected_params?
-    required_params = ControlScheme::REQUIRED_PARAMETERS
-    possible_params = ControlScheme::OPTIONAL_PARAMETERS + required_params
-    pass = true
-    required_params.map { |param| pass = warn "Missing param: #{param}" unless instance_variables.include?(param) }
-    instance_variables.map { |param| pass = warn "Unexpected param: #{param}" unless possible_params.include?(param) }
-
-    pass
-  end
-
-  def validate_integer_params
-    pass = true
-    instance_variables.each do |param|
-      expecting_an_integer = !(instance_variable_get(param).is_a?(Enumerable) ||
-                               ControlScheme::STRING_PARAMETERS.include?(param))
-      pass = warn "#{param} should be a positive integer" if expecting_an_integer && !valid_int?(param)
-    end
-    pass
   end
 
   def validate_signal_lines(type)
