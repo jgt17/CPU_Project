@@ -9,6 +9,7 @@ require_relative 'config_validation'
 #   STRING_PARAMETERS = %i[].freeze
 
 #   DATA_PARAMETERS = %i[].freeze
+#   DATA_TYPE = Hash or Array
 #   GENERATED_DATA = %i[].freeze
 #
 # add_[data_parameter], format_[data_parameter], format_[generated_data] methods
@@ -17,7 +18,7 @@ module Configurable
   include ConfigValidation
 
   def initialize(config)
-    self.class::DATA_PARAMETERS.each { |type| instance_variable_set("@#{type}", {}) }
+    self.class::DATA_PARAMETERS.each { |type| instance_variable_set("@#{type}", self.class::DATA_TYPE.new) }
 
     initialize_from_file(config) if config.is_a? String
     raise "Can only build a #{self.class.name} from a file right now." unless config.is_a? String
@@ -38,8 +39,15 @@ module Configurable
     valid_filename?(filename)
     config_data = ParseConfig.new(filename)
     [:metadata].concat(self.class::DATA_PARAMETERS).each do |type|
-      send("add_#{type}".to_sym, config_data.params[type.to_s.capitalize])
+      send("add_#{type}".to_sym, config_data.params[type.to_s.split('_').map(&:capitalize).join(' ')])
     end
+  end
+
+  def valid_filename?(filename)
+    raise "Expected a filename: #{filename}" unless filename.is_a? String
+    raise "File does not exist: #{filename}" unless File.exist?(filename)
+
+    true
   end
 
   def add_metadata(meta)

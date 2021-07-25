@@ -2,6 +2,7 @@
 
 # general parameters
 # num stages, etc
+[Metadata]
 cpu_name = my_homebrew_cpu
 stages = 1
 rom_bit_width = 8

@@ -11,6 +11,7 @@ class InstructionSet
   STRING_PARAMETERS = %i[isa_name].freeze
 
   DATA_PARAMETERS = %i[groups instructions].freeze
+  DATA_TYPE = Hash
   GENERATED_DATA = %i[unused_opcodes].freeze
 
   attr_reader :groups
@@ -77,13 +78,6 @@ class InstructionSet
     abort "Error Processing group #{name}" unless pass
 
     pass
-  end
-
-  def valid_filename?(filename)
-    raise "Expected a filename: #{filename}" unless filename.is_a? String
-    raise "File does not exist: #{filename}" unless File.exist?(filename)
-
-    true
   end
 
   def format_instructions

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'config_validation'
+
 # methods for validating a control scheme
 module ControlSchemeValidation
   include ConfigValidation
