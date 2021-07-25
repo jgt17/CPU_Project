@@ -2,20 +2,24 @@
 
 require_relative 'config_validation'
 
-# methods for validating a control scheme
+# methods for validating a control scheme, eg, has all expected params, no extra params, and signal lines are unique
 module ControlSchemeValidation
   include ConfigValidation
-  # verify that the specified config is valid, eg, has all expected params, no extra params, and signal lines are unique
-  def validate_config
-    pass = expected_params?
 
-    pass = validate_integer_params && pass
-    abort('Invalid Control Scheme Parameters!') unless pass
-    pass = validate_signal_lines(:@control_lines) && pass
-    pass = validate_signal_lines(:@status_lines) && pass
-    pass = status_signals_in_bounds? && pass
-    abort('Invalid Control Scheme!') unless pass
-    roms_split_signal? # a signal spanning multiple ROMs isn't a critical error, just potentially annoying
+  def validate_status_lines
+    validate_signal_lines :@status_lines
+  end
+
+  def validate_control_lines
+    validate_signal_lines :@control_lines
+  end
+
+  def additional_hard_checks
+    status_signals_in_bounds?
+  end
+
+  def additional_soft_checks
+    roms_split_signal?
   end
 
   def validate_signal_lines(type)

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'config_validation'
-
 # common functionality for objects generated from config files
 #  classes using it must include the following constants and methods
 #   REQUIRED_PARAMETERS = %i[].freeze
@@ -15,7 +13,6 @@ require_relative 'config_validation'
 # add_[data_parameter], format_[data_parameter], format_[generated_data] methods
 # as well as validate_config and post_validation_setup
 module Configurable
-  include ConfigValidation
 
   def initialize(config)
     self.class::DATA_PARAMETERS.each { |type| instance_variable_set("@#{type}", self.class::DATA_TYPE.new) }
@@ -71,7 +68,7 @@ module Configurable
   end
 
   def generate_format_string
-    s =  "=== #{self.class.name.gsub(/[A-Z][^A-Z]/, ' \0').strip} ===\n"
+    s =  "=== #{format_class_name} ===\n"
     s += format_metadata
     (self.class::DATA_PARAMETERS + self.class::GENERATED_DATA).each do |type|
       if respond_to?("format_#{type}", true)
@@ -79,5 +76,9 @@ module Configurable
       end
     end
     @string = s
+  end
+
+  def format_class_name
+    self.class.name.gsub(/[A-Z][^A-Z]/, ' \0').strip
   end
 end

@@ -1,9 +1,19 @@
 # frozen_string_literal: true
 
 # general methods for validating a config file
+# including modules must define methods "validate_[DATA_PARAMETERS]"
+# as well as additional_hard_checks and additional_soft_checks
+# hard checks abort execution, soft checks just warn the user
 module ConfigValidation
   def validate_config
-    true
+    pass = expected_params?
+
+    pass = validate_integer_params && pass
+    abort("Invalid #{self.class.name} Parameters!") unless pass
+    self.class::DATA_PARAMETERS.each { |data| pass = send("validate_#{data}".to_sym) && pass }
+    pass = additional_hard_checks && pass
+    abort("Invalid #{self.class.name}!") unless pass
+    additional_soft_checks # a signal spanning multiple ROMs isn't a critical error, just potentially annoying
   end
 
   private
