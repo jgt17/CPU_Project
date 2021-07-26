@@ -53,12 +53,6 @@ module ControlSchemeValidation
     pass
   end
 
-  def valid_int?(val)
-    val = instance_variable_get(val) if val.is_a? Symbol
-
-    val.is_a?(Integer) && val.positive?
-  end
-
   def status_signals_in_bounds?
     pass = true
     @status_lines.each do |signal|

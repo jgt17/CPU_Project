@@ -13,7 +13,7 @@ rom_address_bits = 13
 # [Name] = [bit_pos], (size)
 
 OPCODE = 0, 8
-EXPANDED_INSTRUCTION_SET = 8, 1
+EXPANDED_INSTRUCTION_SET = 8, 2 # 0: standard, 1: expanded, 1-arg, 2: expanded, 2-args, 3: expanded, no args
 
 [Control Lines]
 # [Name] = [stage], [bit_pos], (size)

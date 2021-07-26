@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'config_validation'
+
 # common functionality for objects generated from config files
 #  classes using it must include the following constants and methods
 #   REQUIRED_PARAMETERS = %i[].freeze
@@ -13,6 +15,7 @@
 # add_[data_parameter], format_[data_parameter], format_[generated_data] methods
 # as well as validate_config and post_validation_setup
 module Configurable
+  include ConfigValidation
 
   def initialize(config)
     self.class::DATA_PARAMETERS.each { |type| instance_variable_set("@#{type}", self.class::DATA_TYPE.new) }
@@ -36,7 +39,9 @@ module Configurable
     valid_filename?(filename)
     config_data = ParseConfig.new(filename)
     [:metadata].concat(self.class::DATA_PARAMETERS).each do |type|
-      send("add_#{type}".to_sym, config_data.params[type.to_s.split('_').map(&:capitalize).join(' ')])
+      next warn "Missing #{to_file_format(type)}!" unless config_data.params[to_file_format(type)].is_a? Enumerable
+
+      send("add_#{type}".to_sym, config_data.params[to_file_format(type)])
     end
   end
 
@@ -72,7 +77,7 @@ module Configurable
     s += format_metadata
     (self.class::DATA_PARAMETERS + self.class::GENERATED_DATA).each do |type|
       if respond_to?("format_#{type}", true)
-        s += "\n== #{type.to_s.split('_').map(&:capitalize).join(' ')} ==\n#{send("format_#{type}")}\n"
+        s += "== #{type.to_s.split('_').map(&:capitalize).join(' ')} ==\n#{send("format_#{type}")}\n"
       end
     end
     @string = s
@@ -80,5 +85,9 @@ module Configurable
 
   def format_class_name
     self.class.name.gsub(/[A-Z][^A-Z]/, ' \0').strip
+  end
+
+  def to_file_format(sym)
+    sym.to_s.split('_').map(&:capitalize).join(' ')
   end
 end

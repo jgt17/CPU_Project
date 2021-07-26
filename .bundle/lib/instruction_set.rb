@@ -1,23 +1,28 @@
 # frozen_string_literal: true
 
 require 'parseconfig'
+require 'set'
 require_relative 'configurable'
+require_relative 'instruction_set_validation'
+require_relative 'instruction'
 
 # models the instruction set of the CPU
 class InstructionSet
   include Configurable
-  REQUIRED_PARAMETERS = %i[isa_name word_size].freeze
+  include InstructionSetValidation
+  REQUIRED_PARAMETERS = %i[isa_name word_size max_args].freeze
   OPTIONAL_PARAMETERS = %i[].freeze
   STRING_PARAMETERS = %i[isa_name].freeze
 
-  DATA_PARAMETERS = %i[groups instructions].freeze
+  DATA_PARAMETERS = %i[groups expansion_opcodes instructions].freeze
   DATA_TYPE = Hash
-  GENERATED_DATA = %i[unused_opcodes].freeze
+  GENERATED_DATA = %i[unused_opcodes instruction_conflicts].freeze
 
   attr_reader :groups
   attr_reader :instructions
   attr_reader :isa_name
   attr_reader :word_size
+  attr_reader :max_args
 
   private
 
@@ -33,8 +38,16 @@ class InstructionSet
     end
   end
 
+  def add_expansion_opcodes(raw_expandable)
+    @expansion_opcodes = {}
+    raw_expandable.each do |code, num_args|
+      @expansion_opcodes[Instruction.parse_opcode(code)] = num_args.to_i
+    end
+  end
+
   def add_instructions(raw_instructions)
-    group_marker = /[, ]+/
+    @instruction_conflicts = {}
+    group_marker = /:\s+/
     raw_instructions.each do |opcode, mnemonic|
       mnemonic.gsub!(/[\s]*#[\s\S]*/, '') # remove comments
       next add_instruction(opcode, mnemonic) unless opcode.match(group_marker)
@@ -58,30 +71,23 @@ class InstructionSet
   end
 
   def add_instruction(opcode, mnemonic)
-    opcode = opcode.to_i(opcode.include?('\x') ? 16 : 2) # accept binary and hex opcodes
-    @instructions[opcode] = mnemonic # TODO: implement instruction class
+    instruction = Instruction.new(opcode, mnemonic, @word_size)
+    if @instructions.key? instruction.binary_opcode
+      @instruction_conflicts[instruction.binary_opcode] ||= Set.new
+      @instruction_conflicts[instruction.binary_opcode].add instruction
+    else
+      @instructions[instruction.binary_opcode] = instruction
+    end
   end
 
   def extract_hash(string)
-    hsh = {}
-    string.delete('{} ').split(',').map { |kv_str| kv_str.split(/:/) }.each { |pair| hsh[pair[0]] = pair[1] }
-    hsh
-  end
-
-  def valid_group?(name, group)
-    pass = true
-    pass = warn "Group name must be a single repeated character: #{name}" unless name.squeeze.length == 1
-    group.each_key do |key|
-      pass = warn "Group name #{name} does not match the length of instance #{key}" unless name.size == key.size
-      pass = warn "Group instance #{key} of group #{name} must contain only 0s and 1s" if key.match?(/[^01]+/)
-    end
-    abort "Error Processing group #{name}" unless pass
-
-    pass
+    hash = {}
+    string.delete('{} ').split(',').map { |kv_str| kv_str.split(/:/) }.each { |pair| hash[pair[0]] = pair[1] }
+    hash
   end
 
   def format_instructions
-    @instructions.sort.map { |op, mem| "#{op.to_s(2).rjust(@word_size, '0').insert(4, ' ')}: #{mem}" }.join "\n"
+    @instructions.values.sort.map(&:to_s).join "\n"
   end
 
   def format_unused_opcodes
@@ -89,6 +95,3 @@ class InstructionSet
     ''
   end
 end
-
-b = InstructionSet.new('../data/cpu.isa')
-puts b

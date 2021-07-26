@@ -44,7 +44,7 @@ class ControlScheme
   end
 
   def add_signal_lines(lines, type)
-    lines.each { |key, value| add_signal_line(key, extract_signal_params(value), type) }
+    lines.each { |key, value| add_signal_line(key, extract_signal_params(value.gsub(/[\s]*#[\s\S]*/, '') ), type) }
   end
 
   def add_signal_line(name, params, type)

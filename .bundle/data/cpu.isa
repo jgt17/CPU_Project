@@ -5,6 +5,7 @@
 [Metadata]
 isa_name = my_cpu_1
 word_size = 8
+max_args = 2
 
 [Groups]
 # opcode specified assumes group bits replaced with 0's
@@ -22,6 +23,11 @@ word_size = 8
 DDD, SSS = {111: a, 000: b, 001: c, 010: d, 011: e, 100: h, 101: l}
 NNN = {000: 0, 001: 1, 010: 2, 011: 3, 100: 4, 101: 5, 110: 6, 111: 7}
 
+[Expansion Opcodes]
+# opcodes reserved for expanding the instruction set
+# expansion opcodes also support grouping, in both the regular and expanded opcode
+# [opcode] = [# args the instructions under the opcode expect] # need to know num args for stage 0
+
 [Instructions]
-\x00 = nop                          # No operation
-\x40, 01DDDSSS = mov {r1}, {r2}     # move the contents of r2 to r1
+\x00           = nop                # No operation
+\x40: 01DDDSSS = mov {r1}, {r2}     # move the contents of r2 to r1

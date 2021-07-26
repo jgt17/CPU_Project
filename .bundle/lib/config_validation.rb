@@ -20,7 +20,7 @@ module ConfigValidation
 
   def expected_params?
     required_params = self.class::REQUIRED_PARAMETERS + self.class::DATA_PARAMETERS
-    possible_params = self.class::OPTIONAL_PARAMETERS + required_params
+    possible_params = self.class::OPTIONAL_PARAMETERS + self.class::GENERATED_DATA + required_params
     all_required_params?(required_params) && no_unexpected_params?(possible_params)
   end
 
@@ -56,5 +56,11 @@ module ConfigValidation
 
   def to_raw_format(var)
     var.to_s.delete('@').to_sym
+  end
+
+  def valid_int?(val)
+    val = instance_variable_get(val) if val.is_a? Symbol
+
+    val.is_a?(Integer) && val.positive?
   end
 end
