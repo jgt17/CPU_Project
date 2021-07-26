@@ -27,6 +27,7 @@ NNN = {000: 0, 001: 1, 010: 2, 011: 3, 100: 4, 101: 5, 110: 6, 111: 7}
 # opcodes reserved for expanding the instruction set
 # expansion opcodes also support grouping, in both the regular and expanded opcode
 # [opcode] = [# args the instructions under the opcode expect] # need to know num args for stage 0
+\01 = 2
 
 [Instructions]
 \x00           = nop                # No operation

@@ -3,7 +3,6 @@
 # representation of an instruction the CPU supports
 class Instruction
   include Comparable
-  EXPANDED_ISA_OPCODES = [].freeze
 
   attr_reader :opcode
   attr_reader :mnemonic
@@ -21,8 +20,16 @@ class Instruction
   end
 
   def <=>(other)
-    cmp = (@opcode <=> other.opcode)
-    cmp.zero? ? @expanded_opcode <=> other.expanded_opcode : cmp
+    if @expanded_opcode.nil? && other.expanded_opcode.nil?
+      0
+    elsif @expanded_opcode.nil?
+      -1
+    elsif other.expanded_opcode.nil?
+      1
+    else
+      cmp = (@opcode <=> other.opcode)
+      cmp.zero? ? @expanded_opcode <=> other.expanded_opcode : cmp
+    end
   end
 
   def binary_opcode
@@ -31,7 +38,11 @@ class Instruction
 
   def hex_opcode
     hex = opcode.to_s(16).rjust(@word_size / 4, '0')
-    @expanded_opcode.nil? ? hex : hex + @expanded_opcode.to_s.rjust(@word_size / 4, '0')
+    @expanded_opcode.nil? ? hex : hex + @expanded_opcode.to_s(16).rjust(@word_size / 4, '0')
+  end
+
+  def decimal_opcode
+    @expanded_opcode.nil? ? @opcode.to_s : "#{@opcode}.#{@expanded_opcode}"
   end
 
   def spaced_binary_opcode
@@ -42,9 +53,20 @@ class Instruction
     "#{spaced_binary_opcode}: #{@mnemonic}"
   end
 
+  def next_from?(other)
+    return false unless other.is_a? Instruction
+    return false unless @expanded_opcode.nil? == other.expanded_opcode.nil?
+
+    @expanded_opcode.nil? ? @opcode - other.opcode == 1 : @opcode == other.opcode && @expanded_opcode - other.expanded_opcode == 1
+  end
+
   def self.parse_opcode(code)
     code = code.delete('^0-9').to_i(code.match?(/[^01]/) ? 16 : 2) if code.is_a? String
     code
+  end
+
+  def self.binary_opcode(int, word_size = 8)
+    int.to_s(2).rjust(word_size, '0')
   end
 
   private

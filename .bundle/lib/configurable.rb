@@ -65,7 +65,7 @@ module Configurable
     lines = fields.map do |field|
       instance_variable_defined?("@#{field}") ? "#{field}: #{instance_variable_get("@#{field}")}\n" : ''
     end
-    lines.join + "\n"
+    lines.join
   end
 
   def post_validation_setup
@@ -77,7 +77,7 @@ module Configurable
     s += format_metadata
     (self.class::DATA_PARAMETERS + self.class::GENERATED_DATA).each do |type|
       if respond_to?("format_#{type}", true)
-        s += "== #{type.to_s.split('_').map(&:capitalize).join(' ')} ==\n#{send("format_#{type}")}\n"
+        s += "\n== #{type.to_s.split('_').map(&:capitalize).join(' ')} ==\n#{send("format_#{type}")}\n"
       end
     end
     @string = s
@@ -89,5 +89,11 @@ module Configurable
 
   def to_file_format(sym)
     sym.to_s.split('_').map(&:capitalize).join(' ')
+  end
+
+  def extract_hash(string)
+    hash = {}
+    string.delete('{} ').split(',').map { |kv_str| kv_str.split(/:/) }.each { |pair| hash[pair[0]] = pair[1] }
+    hash
   end
 end
