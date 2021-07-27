@@ -13,7 +13,7 @@ module ConfigValidation
     self.class::DATA_PARAMETERS.each { |data| pass = send("validate_#{data}".to_sym) && pass }
     pass = additional_hard_checks && pass
     abort("Invalid #{self.class.name}!") unless pass
-    additional_soft_checks # a signal spanning multiple ROMs isn't a critical error, just potentially annoying
+    additional_soft_checks
   end
 
   private
@@ -43,9 +43,17 @@ module ConfigValidation
   def validate_integer_params
     pass = true
     instance_variables.each do |param|
-      expecting_an_integer = !(instance_variable_get(param).is_a?(Enumerable) ||
-          self.class::STRING_PARAMETERS.include?(to_raw_format(param)))
+      expecting_an_integer = self.class::INT_PARAMETERS.include?(to_raw_format(param))
       pass = warn "#{param} should be a positive integer" if expecting_an_integer && !valid_int?(param)
+    end
+    pass
+  end
+
+  def validate_string_params
+    pass = true
+    instance_variables.each do |param|
+      expecting_a_string = self.class::STRING_PARAMETERS.include?(to_raw_format(param))
+      pass = warn "#{param} should be a non-empty string" if expecting_a_string && !valid_string?(param)
     end
     pass
   end
@@ -62,5 +70,11 @@ module ConfigValidation
     val = instance_variable_get(val) if val.is_a? Symbol
 
     val.is_a?(Integer) && val.positive?
+  end
+
+  def valid_string?(val)
+    val = instance_variable_get(val) if val.is_a? Symbol
+
+    val.is_a?(String) && val.strip.length.positive?
   end
 end

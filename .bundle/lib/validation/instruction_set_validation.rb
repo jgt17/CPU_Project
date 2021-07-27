@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'config_validation'
+
 # methods for validating an instruction set
 module InstructionSetValidation
   DATA_PARAMETERS = %i[groups instructions].freeze

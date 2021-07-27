@@ -25,6 +25,11 @@ class SignalLine
     @bit_position <=> other.bit_position
   end
 
+  def value_in_bounds?(val)
+    val = val.to_i unless val.is_a? Integer
+    @values.size > val && !val.negative?
+  end
+
   def [](val)
     @values[val]
   end

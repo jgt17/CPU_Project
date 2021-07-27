@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-require_relative 'config_validation'
+require_relative '../validation/config_validation'
 
 # common functionality for objects generated from config files
 #  classes using it must include the following constants and methods
 #   REQUIRED_PARAMETERS = %i[].freeze
 #   OPTIONAL_PARAMETERS = %i[].freeze
 #   STRING_PARAMETERS = %i[].freeze
+#   INT_PARAMETERS = %i[].freeze
 
 #   DATA_PARAMETERS = %i[].freeze
 #   DATA_TYPE = Hash or Array
@@ -95,5 +96,9 @@ module Configurable
     hash = {}
     string.delete('{} ').split(',').map { |kv_str| kv_str.split(/:/) }.each { |pair| hash[pair[0]] = pair[1] }
     hash
+  end
+
+  def extract_array(string)
+    string.delete(' ').delete_prefix('[').delete_suffix(']').split(',')
   end
 end

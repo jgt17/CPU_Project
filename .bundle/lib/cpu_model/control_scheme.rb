@@ -3,7 +3,7 @@
 require 'parseconfig'
 require 'set'
 require_relative 'signal_line'
-require_relative 'control_scheme_validation'
+require_relative '../validation/control_scheme_validation'
 require_relative 'configurable'
 
 # models the control structure of the CPU
@@ -15,6 +15,7 @@ class ControlScheme
   REQUIRED_PARAMETERS = %i[stages rom_bit_width rom_address_bits].freeze
   OPTIONAL_PARAMETERS = %i[cpu_name].freeze
   STRING_PARAMETERS = %i[cpu_name].freeze
+  INT_PARAMETERS = %i[rom_bit_width rom_address_bits].freeze
 
   DATA_PARAMETERS = %i[status_lines control_lines].freeze
   DATA_TYPE = Array
@@ -27,6 +28,15 @@ class ControlScheme
   attr_reader :status_lines
   attr_reader :rom_counts
   attr_reader :cpu_name
+
+  def control_signal?(name)
+    @control_lines.reduce(false) { |memo, line| memo || name == line.name }
+  end
+
+  def [](name)
+    index = @control_lines.find_index { |line| line.name.eql? name }
+    index.nil? ? nil : @control_lines[index]
+  end
 
   private
 
@@ -44,7 +54,7 @@ class ControlScheme
   end
 
   def add_signal_lines(lines, type)
-    lines.each { |key, value| add_signal_line(key, extract_signal_params(value.gsub(/[\s]*#[\s\S]*/, '') ), type) }
+    lines.each { |key, value| add_signal_line(key, extract_signal_params(value.gsub(/[\s]*#[\s\S]*/, '')), type) }
   end
 
   def add_signal_line(name, params, type)

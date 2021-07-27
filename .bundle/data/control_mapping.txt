@@ -1,4 +1,15 @@
 # Defines the mapping between opcodes and control_signals
-[Substitutions]
 
-[]
+[Metadata]
+name = v1
+
+[Substitutions]
+# Used for readability for multi-bit control signals
+# [signal_name] = {hash of value->bit pattern mappings}
+PC_INCR_AMOUNT = {a: 1, b: 2, d:0}
+
+[Mappings]
+# [opcode mnemonic] = [array of control signals to activate, with values for multi-bit signals]
+# PC_INCR_AMOUNT determined automatically
+nop = []
+mov a, a = [PC_INCR_AMOUNT[3]]

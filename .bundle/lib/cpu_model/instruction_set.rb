@@ -3,16 +3,18 @@
 require 'parseconfig'
 require 'set'
 require_relative 'configurable'
-require_relative 'instruction_set_validation'
+require_relative '../validation/instruction_set_validation'
 require_relative 'instruction'
 
 # models the instruction set of the CPU
 class InstructionSet
   include Configurable
   include InstructionSetValidation
+
   REQUIRED_PARAMETERS = %i[isa_name word_size max_args].freeze
   OPTIONAL_PARAMETERS = %i[].freeze
   STRING_PARAMETERS = %i[isa_name].freeze
+  INT_PARAMETERS = %i[word_size max_args].freeze
 
   DATA_PARAMETERS = %i[groups expansion_opcodes instructions].freeze
   DATA_TYPE = Hash
@@ -23,6 +25,10 @@ class InstructionSet
   attr_reader :isa_name
   attr_reader :word_size
   attr_reader :max_args
+
+  def include?(str)
+    @instructions.key?(str) || @instructions.values.find_index { |instruction| instruction.mnemonic.eql? str }
+  end
 
   private
 
