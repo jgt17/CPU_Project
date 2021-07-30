@@ -16,8 +16,7 @@ module ControlMappingValidation
 
   def validate_mappings
     @mappings.to_a.reduce(true) do |memo, mapping|
-      mnemonic, signals = *mapping
-      next warn "'#{mnemonic}' is not a recognized instruction" unless @instruction_set.include? mnemonic
+      _mnemonic, signals = *mapping
 
       signals.reduce(true) do |memo2, signal|
         signal_name, value = *signal.specify
@@ -29,10 +28,12 @@ module ControlMappingValidation
   end
 
   def additional_hard_checks
-    true
+    all_instructions_specified?
   end
 
-  def additional_soft_checks; end
+  def additional_soft_checks
+    extra_instructions_specified?
+  end
 
   def values_in_bounds?(control_signal, values)
     values.each_value.reduce(true) { |memo, val| value_in_bounds?(control_signal, val) && memo }
@@ -44,5 +45,17 @@ module ControlMappingValidation
     end
 
     true
+  end
+
+  def all_instructions_specified?
+    @instruction_set.instructions.sort.reduce(true) do |memo, kv_pair|
+      mappings.key?(kv_pair[1].mnemonic) ? memo : warn("Missing control definition of '#{kv_pair[1].mnemonic}'!")
+    end
+  end
+
+  def extra_instructions_specified?
+    !(mappings.each_key.reduce(true) do |memo, mnemonic|
+      @instruction_set.include?(mnemonic) ? memo : warn("Unexpected instruction definition '#{mnemonic}'")
+    end)
   end
 end

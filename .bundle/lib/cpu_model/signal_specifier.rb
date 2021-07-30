@@ -1,11 +1,12 @@
-# frozen_string_literal:
+# frozen_string_literal: true
 
 # holds the name of a control signal and the value it should have for a specific instruction
 class SignalSpecifier
   attr_reader :signal_name
   attr_reader :value
 
-  def initialize(signal_name, value)
+  def initialize(signal_name, value = nil)
+    value ||= 1
     @signal_name = signal_name
     @value = value
     freeze

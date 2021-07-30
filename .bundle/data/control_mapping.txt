@@ -12,4 +12,11 @@ PC_INCR_AMOUNT = {a: 1, b: 2, d:0}
 # [opcode mnemonic] = [array of control signals to activate, with values for multi-bit signals]
 # PC_INCR_AMOUNT determined automatically
 nop = []
-mov a, a = [PC_INCR_AMOUNT[3]]
+mov b, b = [PC_INCR_AMOUNT[3]]
+mov b, c = [PC_INCR_AMOUNT[3]]
+mov b, d = [PC_INCR_AMOUNT[3]]
+mov b, e = [PC_INCR_AMOUNT[3]]
+mov b, h = [PC_INCR_AMOUNT[3]]
+mov b, l = [PC_INCR_AMOUNT[3]]
+mov b, a = [PC_INCR_AMOUNT[3]]
+test = []

@@ -53,7 +53,18 @@ class ControlMapping
     @mappings.map { |mnemonic, signals| "'#{mnemonic}': [#{signals.map(&:to_s).join(', ')}]" }.join("\n")
   end
 
-  def add_pc_incr_signals; end
+  def add_pc_incr_signals
+    @mappings.each do |mnemonic, signals|
+      signals.prepend(SignalSpecifier.new('PC_INCR_AMOUNT', determine_pc_incr_amount(mnemonic)))
+    end
+  end
+
+  def determine_pc_incr_amount(mnemonic)
+    instruction = @instruction_set[mnemonic]
+    return -1 if instruction.nil?
+
+    1 + instruction.args_expected + (instruction.expanded_opcode.nil? ? 0 : 1)
+  end
 
   def post_validation_setup
     add_pc_incr_signals

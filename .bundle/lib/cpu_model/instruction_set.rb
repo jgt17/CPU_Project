@@ -30,6 +30,14 @@ class InstructionSet
     @instructions.key?(str) || @instructions.values.find_index { |instruction| instruction.mnemonic.eql? str }
   end
 
+  def [](id)
+    return @instructions[id] if @instructions.key?(id)
+
+    instruction_list = @instructions.values
+    index = instruction_list.find_index { |instruction| instruction.mnemonic.eql? id }
+    index.nil? ? nil : instruction_list[index]
+  end
+
   private
 
   def add_groups(raw_groups)
