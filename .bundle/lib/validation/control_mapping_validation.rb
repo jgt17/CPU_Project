@@ -67,7 +67,9 @@ module ControlMappingValidation
 
   def extra_instructions_specified?
     !(mappings.each_key.reduce(true) do |memo, mnemonic|
-      @instruction_set.include?(mnemonic) ? memo : warn("Mapping: Unexpected instruction definition '#{mnemonic}'")
+      next memo if @instruction_set.include?(mnemonic) || @instruction_set.expansion_opcodes.key?(mnemonic) || mnemonic.include?(@instruction_set.expansion_mnemonic)
+
+      warn("Mapping: Unexpected instruction definition '#{mnemonic}'")
     end)
   end
 

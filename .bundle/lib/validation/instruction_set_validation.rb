@@ -88,7 +88,7 @@ module InstructionSetValidation
     unless instruction.expanded_opcode.nil? || @expansion_opcodes.key?(instruction.opcode)
       pass = warn "Instructions: #{instruction} should not have an expansion code"
     end
-    if @expansion_opcodes.key?(instruction.opcode) && instruction.expanded_opcode.nil?
+    if @expansion_opcodes.key?(instruction.opcode) && instruction.expanded_opcode.nil? && !instruction.mnemonic.include?(expansion_mnemonic)
       pass = warn "Instructions: #{instruction} should have an expansion code"
     end
     pass

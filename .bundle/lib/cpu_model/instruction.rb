@@ -61,8 +61,12 @@ class Instruction
   end
 
   def self.parse_opcode(code)
-    code = code.delete('^0-9').to_i(code.match?(/[^01]/) ? 16 : 2) if code.is_a? String
+    code = code.delete('^0-9a-fA-F').to_i(code.match?(/[^01]/) ? 16 : 2) if code.is_a? String
     code
+  end
+
+  def expanded?
+    !expanded_opcode.nil?
   end
 
   def self.binary_opcode(int, word_size = 8)

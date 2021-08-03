@@ -6,7 +6,7 @@ name = v1
 [Substitutions]
 # Used for readability for multi-bit control signals
 # [signal_name] = {hash of value->bit pattern mappings}
-PC_INCR_AMOUNT = {a: 1, b: 2, d:0}
+# PC_INCR_AMOUNT = {a: 1, b: 2, d:0}
 
 [Mappings]
 # [opcode mnemonic] = [array of control signals to activate, with values for multi-bit signals]
@@ -19,12 +19,13 @@ mov b, e = []
 mov b, h = []
 mov b, l = []
 mov b, a = []
+test [f] [d] = []
 
 # Auto-generation of certain control signals
 # functions:
 # (implemented in code)
-# ?(arg,a,b) = arg.send(:nil?) ? a : b
+# ternary(arg,a,b) = arg ? a : b
 
 [Control Signal Expressions]
-PC_INCR_AMOUNT = 1 + [args_expected] + ternary([expanded_opcode],1,0)
-EXPANDED_INSTRUCTION_SET = ternary([expanded_opcode],[args_expected],3)
+PC_INCR_AMOUNT = 1 + [args_expected] + ternary(or([expanded_opcode], expansion_opcode?([opcode])),1,0)
+EXPANDED_INSTRUCTION_SET = ternary(or([expanded_opcode], expansion_opcode?([opcode])),3 - [args_expected],0)

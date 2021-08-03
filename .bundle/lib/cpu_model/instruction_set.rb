@@ -25,6 +25,7 @@ class InstructionSet
   attr_reader :isa_name
   attr_reader :word_size
   attr_reader :max_args
+  attr_reader :expansion_opcodes
 
   def include?(str)
     @instructions.key?(str) || @instructions.values.find_index { |instruction| instruction.mnemonic.eql? str }
@@ -36,6 +37,10 @@ class InstructionSet
     instruction_list = @instructions.values
     index = instruction_list.find_index { |instruction| instruction.mnemonic.eql? id }
     index.nil? ? nil : instruction_list[index]
+  end
+
+  def expansion_mnemonic(num_args = 0, code = nil)
+    "EXPANSION #{Instruction.parse_opcode(code)} #{'[dummy] ' * num_args.to_i}".strip
   end
 
   private
@@ -54,6 +59,7 @@ class InstructionSet
     @expansion_opcodes = {}
     raw_expandable.each do |code, num_args|
       @expansion_opcodes[Instruction.parse_opcode(code)] = num_args.to_i
+      add_instruction(code, expansion_mnemonic(num_args, code))
     end
   end
 
@@ -90,6 +96,10 @@ class InstructionSet
     else
       @instructions[instruction.binary_opcode] = instruction
     end
+  end
+
+  def format_expansion_opcodes
+    @expansion_opcodes.to_a.map { |kv_pair| "#{kv_pair[0]}: #{kv_pair[1]} args" }.join("\n")
   end
 
   def format_instructions

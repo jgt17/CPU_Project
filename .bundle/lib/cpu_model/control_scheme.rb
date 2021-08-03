@@ -38,6 +38,26 @@ class ControlScheme
     index.nil? ? nil : @control_lines[index]
   end
 
+  def signal_start(signal)
+    signal = signal.signal_line if signal.is_a? ControlSignal
+    return signal.bit_position if signal.stage.nil?
+
+    (0...signal.stage).reduce(signal.bit_position) { |memo, stage| memo + @rom_counts[stage] * @rom_bit_width }
+  end
+
+  def signal_end(signal)
+    signal = signal.signal_line if signal.is_a? ControlSignal
+    return signal.top_bit_position if signal.stage.nil?
+
+    (0...signal.stage).reduce(signal.top_bit_position) { |memo, stage| memo + @rom_counts[stage] * @rom_bit_width }
+  end
+
+  def control_word_size
+    rom_counts.reduce(0) { |memo, num_roms| memo + (num_roms * rom_bit_width) }
+  end
+
+  # TODO: add split_control_word_by_roms
+
   private
 
   def post_validation_setup

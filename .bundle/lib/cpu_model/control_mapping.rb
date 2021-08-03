@@ -3,7 +3,7 @@
 require_relative 'configurable'
 require_relative 'signal_specifier'
 require_relative '../validation/control_mapping_validation'
-require_relative 'control_signal_expression_parsing/b'
+require_relative 'control_signal_expression_parser'
 
 # defines the mapping of opcodes to control signals
 class ControlMapping
@@ -48,9 +48,11 @@ class ControlMapping
         SignalSpecifier.new(sig_name, sig_value)
       end
     end
+    @instruction_set.expansion_opcodes.each { |code, args| @mappings[@instruction_set.expansion_mnemonic(args, code)] = [] }
   end
 
   def add_control_signal_expressions(raw_expressions)
+    ControlSignalExpressionParsing.expansion_opcodes = @instruction_set.expansion_opcodes
     raw_expressions.to_a.reverse_each do |kv_pair|
       signal_name, expression = *kv_pair
       @mappings.each do |mnemonic, signals|

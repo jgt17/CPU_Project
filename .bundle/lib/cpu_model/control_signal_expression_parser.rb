@@ -2,7 +2,7 @@
 
 require 'parslet'
 
-require_relative '../truction'
+require_relative 'instruction'
 
 # stuff for parsing CSEs into ints
 module ControlSignalExpressionParsing
@@ -35,10 +35,20 @@ module ControlSignalExpressionParsing
 
   CSE_PARSER = ControlSignalExpressionParser.new
 
+  @expansion_opcodes = []
+
   # util functions for processing the CSE parse tree into something usable
   module CSETransformFunctions
     def self.ternary(condition, true_case, false_case)
       condition ? true_case : false_case
+    end
+
+    def self.or(left, right)
+      left || right
+    end
+
+    def self.expansion_opcode?(opcode)
+      ControlSignalExpressionParsing.expansion_opcodes.include?(opcode)
     end
   end
 
@@ -67,5 +77,13 @@ module ControlSignalExpressionParsing
 
   def self.parse_cse(expression, instruction)
     transform(instruction).apply(CSE_PARSER.parse(expression.delete(' ')))
+  end
+
+  def self.expansion_opcodes=(codes)
+    @expansion_opcodes = codes
+  end
+
+  def self.expansion_opcodes
+    @expansion_opcodes
   end
 end
