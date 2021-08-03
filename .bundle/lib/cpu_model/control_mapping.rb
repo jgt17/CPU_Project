@@ -3,6 +3,7 @@
 require_relative 'configurable'
 require_relative 'signal_specifier'
 require_relative '../validation/control_mapping_validation'
+require_relative 'control_signal_expression_parsing/b'
 
 # defines the mapping of opcodes to control signals
 class ControlMapping
@@ -14,8 +15,8 @@ class ControlMapping
   STRING_PARAMETERS = %i[name].freeze
   INT_PARAMETERS = %i[].freeze
 
-  DATA_PARAMETERS = %i[substitutions mappings].freeze
-  DATA_TYPE = Array
+  DATA_PARAMETERS = %i[substitutions mappings control_signal_expressions].freeze
+  DATA_TYPE = Hash
   GENERATED_DATA = %i[control_scheme instruction_set].freeze
 
   attr_reader :name
@@ -49,25 +50,20 @@ class ControlMapping
     end
   end
 
-  def format_mappings
-    @mappings.map { |mnemonic, signals| "'#{mnemonic}': [#{signals.map(&:to_s).join(', ')}]" }.join("\n")
-  end
+  def add_control_signal_expressions(raw_expressions)
+    raw_expressions.to_a.reverse_each do |kv_pair|
+      signal_name, expression = *kv_pair
+      @mappings.each do |mnemonic, signals|
+        instruction = @instruction_set[mnemonic]
+        next unless instruction
 
-  def add_pc_incr_signals
-    @mappings.each do |mnemonic, signals|
-      signals.prepend(SignalSpecifier.new('PC_INCR_AMOUNT', determine_pc_incr_amount(mnemonic)))
+        signals.prepend(SignalSpecifier.new(signal_name,
+                                            ControlSignalExpressionParsing.parse_cse(expression, instruction)))
+      end
     end
   end
 
-  def determine_pc_incr_amount(mnemonic)
-    instruction = @instruction_set[mnemonic]
-    return -1 if instruction.nil?
-
-    1 + instruction.args_expected + (instruction.expanded_opcode.nil? ? 0 : 1)
-  end
-
-  def post_validation_setup
-    add_pc_incr_signals
-    super
+  def format_mappings
+    @mappings.map { |mnemonic, signals| "'#{mnemonic}': [#{signals.map(&:to_s).join(', ')}]" }.join("\n")
   end
 end

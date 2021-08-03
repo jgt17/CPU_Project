@@ -35,7 +35,7 @@ module ControlSchemeValidation
 
   def valid_stage?(signal)
     pass = true
-    stage_error_string = "The CPU only has #{@stages} stages but #{signal} is in stage #{signal.stage}"
+    stage_error_string = "Controls: The CPU only has #{@stages} stages but #{signal} is in stage #{signal.stage}"
     pass = warn stage_error_string unless signal.stage.nil? || (0...@stages).include?(signal.stage)
 
     pass
@@ -47,7 +47,7 @@ module ControlSchemeValidation
     end_bit = start_bit + signal.size
     (start_bit...end_bit).each do |bit|
       unless reserved_lines[signal.stage].add? bit
-        pass = warn "Signal Line Conflict at bit #{bit} of stage #{signal.stage || 'nil'}"
+        pass = warn "Controls: Signal Line Conflict at bit #{bit} of stage #{signal.stage || 'nil'}"
       end
     end
     pass
@@ -58,7 +58,8 @@ module ControlSchemeValidation
     @status_lines.each do |signal|
       top_bit = signal.top_bit_position
       unless top_bit <= @rom_address_bits
-        pass = warn "#{signal.name} has status line #{top_bit}, but ROMs only have #{@rom_address_bits} address bits."
+        pass = warn "Controls: #{signal.name} has status line #{top_bit}, " \
+                    "but ROMs only have #{@rom_address_bits} address bits."
       end
     end
     pass
@@ -70,7 +71,8 @@ module ControlSchemeValidation
       start_rom = sig.bit_position / @rom_bit_width
       end_rom = sig.top_bit_position / @rom_bit_width
       unless start_rom == end_rom
-        pass = warn "Control Signal #{sig.name} of stage #{sig.stage} is split between ROMs #{start_rom}-#{end_rom}."
+        pass = warn "Controls: Control Signal #{sig.name} of stage #{sig.stage} " \
+                    "is split between ROMs #{start_rom}-#{end_rom}."
       end
     end
     pass

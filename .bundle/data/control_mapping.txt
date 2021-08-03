@@ -12,11 +12,19 @@ PC_INCR_AMOUNT = {a: 1, b: 2, d:0}
 # [opcode mnemonic] = [array of control signals to activate, with values for multi-bit signals]
 # PC_INCR_AMOUNT determined automatically
 nop = []
-mov b, b = [PC_INCR_AMOUNT[3]]
-mov b, c = [PC_INCR_AMOUNT[3]]
-mov b, d = [PC_INCR_AMOUNT[3]]
-mov b, e = [PC_INCR_AMOUNT[3]]
-mov b, h = [PC_INCR_AMOUNT[3]]
-mov b, l = [PC_INCR_AMOUNT[3]]
-mov b, a = [PC_INCR_AMOUNT[3]]
-test = []
+mov b, b = []
+mov b, c = []
+mov b, d = []
+mov b, e = []
+mov b, h = []
+mov b, l = []
+mov b, a = []
+
+# Auto-generation of certain control signals
+# functions:
+# (implemented in code)
+# ?(arg,a,b) = arg.send(:nil?) ? a : b
+
+[Control Signal Expressions]
+PC_INCR_AMOUNT = 1 + [args_expected] + ternary([expanded_opcode],1,0)
+EXPANDED_INSTRUCTION_SET = ternary([expanded_opcode],[args_expected],3)

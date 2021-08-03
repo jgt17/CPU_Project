@@ -93,7 +93,7 @@ class InstructionSet
   end
 
   def format_instructions
-    @instructions.values.sort.map(&:to_s).join "\n"
+    @instructions.values.map(&:to_s).sort.join "\n"
   end
 
   def format_unused_opcodes

@@ -13,10 +13,11 @@ rom_address_bits = 13
 # [Name] = [bit_pos], (size)
 
 OPCODE = 0, 8
-EXPANDED_INSTRUCTION_SET = 8, 2 # 0: standard, 1: expanded, 1-arg, 2: expanded, 2-args, 3: expanded, no args
+EXPANDED_INSTRUCTION_SET = 8, 2 # 0: expanded, no args, 1: expanded, 1-arg, 2: expanded, 2-args, 3: standard
 
 [Control Lines]
 # [Name] = [stage], [bit_pos], (size)
 
 # Stage 0: Primary Fetch
 PC_INCR_AMOUNT = 0, 0, 3
+EXPANDED_INSTRUCTION_SET = 0, 3, 2 # same encoding as Status Line signal
