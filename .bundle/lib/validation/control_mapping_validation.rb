@@ -23,11 +23,11 @@ module ControlMappingValidation
     @mappings.to_a.reduce(true) do |memo, mapping|
       mnemonic, signals = *mapping
       memo = no_duplicate_signals?(signals, mnemonic) && memo
-      all_signals_valid?(signals) && memo
+      all_signals_valid?(signals, mnemonic) && memo
     end
   end
 
-  def all_signals_valid?(signal_specifiers)
+  def all_signals_valid?(signal_specifiers, mnemonic)
     signal_specifiers.reduce(true) do |memo2, signal|
       signal_name, value = *signal.specify
       unless @control_scheme.control_signal?(signal_name)

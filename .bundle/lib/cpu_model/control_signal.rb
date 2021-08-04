@@ -24,4 +24,8 @@ class ControlSignal
   def name
     signal_line.name
   end
+
+  def to_s
+    "#{@signal_line.name}[#{@signal_value}]"
+  end
 end

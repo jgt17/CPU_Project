@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'cpu_model_formatting.rb'
 require_relative 'control_scheme'
 require_relative 'instruction_set'
 require_relative 'control_mapping'
@@ -8,19 +9,41 @@ require_relative 'control_signal'
 # model of the cpu, used to generate microcode data
 # TODO: add ROM generation logic
 class CPUModel
+  include CPUModelFormatting
   TMP_FILE_LOCATION = '../../tmp/'
   DATA_FILE_LOCATION = '../../data/'
   VARS_TO_SAVE = %i[control_scheme instruction_set control_mapping].freeze
 
   attr_reader :binary_mapping
 
-  def initialize(control_scheme, instruction_set, control_mapping)
+  def initialize(name, control_scheme, instruction_set, control_mapping)
+    @name = name
     parse_cpu_config_files(control_scheme, instruction_set, control_mapping)
     puts 'Valid CPU Model initialized.'
     match_instructions_to_controls
     instructions_to_binary
+    generate_format_string
     human_readable_save
+    freeze
   end
+
+  def rom_counts
+    @control_scheme.rom_counts
+  end
+
+  def rom_address_bits
+    @control_scheme.rom_address_bits
+  end
+
+  def rom_bit_width
+    @control_scheme.rom_bit_width
+  end
+
+  def to_s
+    @human_readable_string
+  end
+
+  private
 
   def parse_cpu_config_files(control_scheme, instruction_set, control_mapping)
     @control_scheme = control_scheme.is_a?(ControlScheme) ? control_scheme : ControlScheme.new(control_scheme)
@@ -35,8 +58,9 @@ class CPUModel
 
   def human_readable_save
     VARS_TO_SAVE.each do |var_name|
-      File.write("#{TMP_FILE_LOCATION}#{var_name}_out.txt", instance_variable_get("@#{var_name}"))
+      File.write("#{TMP_FILE_LOCATION}#{var_name}_#{@name}_out.txt", instance_variable_get("@#{var_name}"))
     end
+    File.write("#{TMP_FILE_LOCATION}cpu_model_#{@name}_out.txt", to_s)
   end
 
   def match_instructions_to_controls
@@ -46,14 +70,15 @@ class CPUModel
         ControlSignal.new(@control_scheme[specifier.signal_name], specifier.value)
       end
     end
-    @instruction_mapping.each { |k, v| p "#{k}: #{v}" }
   end
 
   def instructions_to_binary
+    @labeled = {}
     @binary_mapping = {}
     @instruction_mapping.to_a.map do |kv_pair|
       instruction, control_signals = *kv_pair
       @binary_mapping[instruction_to_binary(instruction)] = control_signals_to_binary(control_signals)
+      @labeled[kv_pair] = [instruction_to_binary(instruction), control_signals_to_binary(control_signals)]
     end
   end
 
@@ -99,5 +124,5 @@ class CPUModel
   end
 end
 
-model = CPUModel.new('../../data/control_structure.txt', '../../data/cpu.isa', '../../data/control_mapping.txt')
+model = CPUModel.new('cpu', '../../data/control_structure.txt', '../../data/cpu.isa', '../../data/control_mapping.txt')
 model.binary_mapping.each { |status_word, control_word| p "#{status_word}: #{control_word}" }
