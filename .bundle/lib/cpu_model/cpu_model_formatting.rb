@@ -30,7 +30,7 @@ module CPUModelFormatting
   end
 
   def divide_control_word_by_roms(control_word)
-    binary = control_word.gsub(/.{#{rom_bit_width}/, '\0 ').strip.split
+    binary = control_word.gsub(/.{#{rom_bit_width}}/, '\0 ').strip.split
     signals_by_roms = []
     rom_counts.each do |num_roms|
       signals_by_roms.append []

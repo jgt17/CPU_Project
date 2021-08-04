@@ -15,6 +15,7 @@ class CPUModel
   VARS_TO_SAVE = %i[control_scheme instruction_set control_mapping].freeze
 
   attr_reader :binary_mapping
+  attr_reader :name
 
   def initialize(name, control_scheme, instruction_set, control_mapping)
     @name = name
@@ -24,7 +25,12 @@ class CPUModel
     instructions_to_binary
     generate_format_string
     human_readable_save
+    @binary_mapping.each { |status_word, control_word| p "#{status_word}: #{control_word}" }
     freeze
+  end
+
+  def [](address)
+    @binary_mapping[address] || '0' * control_word_size
   end
 
   def rom_counts
@@ -37,6 +43,10 @@ class CPUModel
 
   def rom_bit_width
     @control_scheme.rom_bit_width
+  end
+
+  def control_word_size
+    @control_scheme.control_word_size
   end
 
   def to_s
@@ -58,9 +68,10 @@ class CPUModel
 
   def human_readable_save
     VARS_TO_SAVE.each do |var_name|
-      File.write("#{TMP_FILE_LOCATION}#{var_name}_#{@name}_out.txt", instance_variable_get("@#{var_name}"))
+      File.write(File.join(File.dirname(__FILE__), "#{TMP_FILE_LOCATION}#{var_name}_#{@name}_out.txt"),
+                 instance_variable_get("@#{var_name}"))
     end
-    File.write("#{TMP_FILE_LOCATION}cpu_model_#{@name}_out.txt", to_s)
+    File.write(File.join(File.dirname(__FILE__), "#{TMP_FILE_LOCATION}cpu_model_#{@name}_out.txt"), to_s)
   end
 
   def match_instructions_to_controls
@@ -123,6 +134,3 @@ class CPUModel
     status_word
   end
 end
-
-model = CPUModel.new('cpu', '../../data/control_structure.txt', '../../data/cpu.isa', '../../data/control_mapping.txt')
-model.binary_mapping.each { |status_word, control_word| p "#{status_word}: #{control_word}" }

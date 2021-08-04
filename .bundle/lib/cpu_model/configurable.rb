@@ -37,13 +37,16 @@ module Configurable
 
   # parses a config from a file and initializes it
   def initialize_from_file(filename)
+    filename = File.join(File.dirname(__FILE__), filename)
     valid_filename?(filename)
     config_data = ParseConfig.new(filename)
-    [:metadata].concat(self.class::DATA_PARAMETERS).each do |type|
-      next warn "Missing #{to_file_format(type)}!" unless config_data.params[to_file_format(type)].is_a? Enumerable
+    [:metadata].concat(self.class::DATA_PARAMETERS).each { |type| load_data(type, config_data) }
+  end
 
-      send("add_#{type}".to_sym, config_data.params[to_file_format(type)])
-    end
+  def load_data(type, raw_data)
+    return warn "Missing #{to_file_format(type)}!" unless raw_data.params[to_file_format(type)].is_a? Enumerable
+
+    send("add_#{type}".to_sym, raw_data.params[to_file_format(type)])
   end
 
   def valid_filename?(filename)
