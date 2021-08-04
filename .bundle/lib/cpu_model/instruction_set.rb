@@ -5,11 +5,13 @@ require 'set'
 require_relative 'configurable'
 require_relative '../validation/instruction_set_validation'
 require_relative 'instruction'
+require_relative 'unused_opcode_util'
 
 # models the instruction set of the CPU
 class InstructionSet
   include Configurable
   include InstructionSetValidation
+  include UnusedOpcodeUtil
 
   REQUIRED_PARAMETERS = %i[isa_name word_size max_args].freeze
   OPTIONAL_PARAMETERS = %i[].freeze
@@ -120,35 +122,7 @@ class InstructionSet
   end
 
   def post_validation_setup
-    find_unused_opcodes
+    @unused_opcodes = find_unused_opcodes(@instructions, @expansion_opcodes, @word_size)
     super
-  end
-
-  def find_unused_opcodes
-    used_opcodes = @instructions.keys + @expansion_opcodes.keys.map { |k| Instruction.binary_opcode(k, @word_size) }
-    unused_opcodes = possible_opcodes - used_opcodes
-    @unused_opcodes = unused_opcodes.map { |code| Instruction.new(code, 'dummy_instruction') }
-  end
-
-  def possible_opcodes
-    opcodes = []
-    ([''] + @expansion_opcodes.keys).each do |expansion_code|
-      prefix = expansion_code.is_a?(Integer) ? Instruction.binary_opcode(expansion_code, @word_size) + ' ' : ''
-      opcodes += (0...2**@word_size).map { |i| prefix + Instruction.binary_opcode(i, @word_size) }
-    end
-    opcodes
-  end
-
-  def find_opcode_ranges(instruction_array)
-    instruction_array = instruction_array.sort
-    ranges = [[]]
-    previous = instruction_array[0]
-    instruction_array.each do |instruction|
-      ranges[-1].append previous unless instruction.next_from?(previous)
-      previous = instruction
-      ranges.append [instruction] if ranges[-1]&.size == 2
-    end
-    ranges[-1].append instruction_array[-1] unless ranges[-1].size == 2
-    ranges
   end
 end

@@ -15,14 +15,22 @@ class CPUModel
   attr_reader :binary_mapping
 
   def initialize(control_scheme, instruction_set, control_mapping)
-    @control_scheme = control_scheme.is_a?(ControlScheme) ? control_scheme : ControlScheme.new(control_scheme)
-    @instruction_set = instruction_set.is_a?(InstructionSet) ? instruction_set : InstructionSet.new(instruction_set)
-    # control_mapping needs to check against control scheme and instruction set for validation
-    @control_mapping = control_mapping.is_a?(ControlMapping) ? control_mapping : ControlMapping.new(control_mapping, @control_scheme, @instruction_set)
+    parse_cpu_config_files(control_scheme, instruction_set, control_mapping)
     puts 'Valid CPU Model initialized.'
     match_instructions_to_controls
     instructions_to_binary
     human_readable_save
+  end
+
+  def parse_cpu_config_files(control_scheme, instruction_set, control_mapping)
+    @control_scheme = control_scheme.is_a?(ControlScheme) ? control_scheme : ControlScheme.new(control_scheme)
+    @instruction_set = instruction_set.is_a?(InstructionSet) ? instruction_set : InstructionSet.new(instruction_set)
+    # control_mapping needs to check against control scheme and instruction set for validation
+    @control_mapping = if control_mapping.is_a? ControlMapping
+                         control_mapping
+                       else
+                         ControlMapping.new(control_mapping, @control_scheme, @instruction_set)
+                       end
   end
 
   def human_readable_save
@@ -71,8 +79,13 @@ class CPUModel
     elsif status_line.name == 'EXPANDED_INSTRUCTION_SET' && !instruction.expanded?
       0
     elsif @instruction_mapping[instruction].map(&:name).include?(status_line.name)
-      @instruction_mapping[instruction][@instruction_mapping[instruction].find_index { |signal| signal.name.eql? status_line.name }].signal_value
+      status_val_from_control_signal(status_line, instruction)
     end
+  end
+
+  def status_val_from_control_signal(status_line, instruction)
+    status_line_index = @instruction_mapping[instruction].find_index { |signal| signal.name.eql? status_line.name }
+    @instruction_mapping[instruction][status_line_index].signal_value
   end
 
   def status_signals_to_binary(status_signals)
@@ -87,5 +100,4 @@ class CPUModel
 end
 
 model = CPUModel.new('../../data/control_structure.txt', '../../data/cpu.isa', '../../data/control_mapping.txt')
-p 'hmmm'
-model.binary_mapping.each { |status_word, control_word| p "#{status_word}: #{control_word}"}
+model.binary_mapping.each { |status_word, control_word| p "#{status_word}: #{control_word}" }

@@ -41,14 +41,18 @@ class ControlMapping
     @mappings = {}
     raw_mappings.each do |mnemonic, signals|
       @mappings[mnemonic] = extract_array(signals)
-      @mappings[mnemonic].map! do |signal|
-        sig_name, sig_value = signal.delete(']').split('[')
-        sig_value ||= 1
-        @substitutions.each { |name| break sig_value = @substitutions[sig_name][sig_value] if name == sig_name }
-        SignalSpecifier.new(sig_name, sig_value)
-      end
+      @mappings[mnemonic].map! { |signal| raw_signal_to_specifier(signal) }
     end
-    @instruction_set.expansion_opcodes.each { |code, args| @mappings[@instruction_set.expansion_mnemonic(args, code)] = [] }
+    @instruction_set.expansion_opcodes.each do |code, args|
+      @mappings[@instruction_set.expansion_mnemonic(args, code)] = []
+    end
+  end
+
+  def raw_signal_to_specifier(signal_str)
+    sig_name, sig_value = signal_str.delete(']').split('[')
+    sig_value ||= 1
+    @substitutions.each { |name| break sig_value = @substitutions[sig_name][sig_value] if name == sig_name }
+    SignalSpecifier.new(sig_name, sig_value)
   end
 
   def add_control_signal_expressions(raw_expressions)

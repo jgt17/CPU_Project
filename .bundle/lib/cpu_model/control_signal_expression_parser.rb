@@ -7,6 +7,7 @@ require_relative 'instruction'
 # stuff for parsing CSEs into ints
 module ControlSignalExpressionParsing
   # a simple Parslet grammar for parsing auto-generating control signal rules
+  # noinspection RubyResolve
   class ControlSignalExpressionParser < Parslet::Parser
     root(:expression)
 
@@ -17,12 +18,12 @@ module ControlSignalExpressionParsing
     rule(:add_op) { match['+-'].as(:op) }
     rule(:space) { match[' '] }
 
-    rule(:expression) do
+    rule(:expression) {
       infix_expression(value,
                        [power_op, 3, :right],
                        [mul_op, 2, :left],
                        [add_op, 1, :left])
-    end
+    }
 
     rule(:literal) { int_literal | string_literal }
     rule(:parens) { str('(') >> expression >> str(')') }
@@ -55,6 +56,7 @@ module ControlSignalExpressionParsing
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/LineLength
   # rubocop:disable Metrics/MethodLength
+  # noinspection RubyResolve
   def self.transform(instruction)
     Parslet::Transform.new do
       rule(int: simple(:x)) { Integer(x) }

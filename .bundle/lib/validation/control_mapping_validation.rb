@@ -5,6 +5,7 @@ require 'set'
 require_relative 'config_validation'
 
 # methods for validating a control mapping
+# noinspection RubyInstanceMethodNamingConvention
 module ControlMappingValidation
   include ConfigValidation
 
@@ -22,15 +23,18 @@ module ControlMappingValidation
     @mappings.to_a.reduce(true) do |memo, mapping|
       mnemonic, signals = *mapping
       memo = no_duplicate_signals?(signals, mnemonic) && memo
+      all_signals_valid?(signals) && memo
+    end
+  end
 
-      signals.reduce(true) do |memo2, signal|
-        signal_name, value = *signal.specify
-        unless @control_scheme.control_signal?(signal_name)
-          next warn "Mapping: Unknown control signal name: #{signal_name}"
-        end
+  def all_signals_valid?(signal_specifiers)
+    signal_specifiers.reduce(true) do |memo2, signal|
+      signal_name, value = *signal.specify
+      unless @control_scheme.control_signal?(signal_name)
+        next warn "Mapping: Unknown control signal name: #{signal_name}"
+      end
 
-        value_in_bounds?(@control_scheme[signal_name], value, mnemonic) && memo2
-      end && memo
+      value_in_bounds?(@control_scheme[signal_name], value, mnemonic) && memo2
     end
   end
 
@@ -67,7 +71,11 @@ module ControlMappingValidation
 
   def extra_instructions_specified?
     !(mappings.each_key.reduce(true) do |memo, mnemonic|
-      next memo if @instruction_set.include?(mnemonic) || @instruction_set.expansion_opcodes.key?(mnemonic) || mnemonic.include?(@instruction_set.expansion_mnemonic)
+      if @instruction_set.include?(mnemonic) ||
+          @instruction_set.expansion_opcodes.key?(mnemonic) ||
+          mnemonic.include?(@instruction_set.expansion_mnemonic)
+        next memo
+      end
 
       warn("Mapping: Unexpected instruction definition '#{mnemonic}'")
     end)

@@ -11,7 +11,7 @@ public
 # may change to bindata uint8 later
 def validate_data(data)
   data.each do |byte|
-    raise "Data should be single bytes: #{byte}" unless byte.is_a?(Integer) && byte >=0 && byte < 256
+    raise "Data should be single bytes: #{byte}" unless byte.is_a?(Integer) && byte >= 0 && byte < 256
   end
   true
 end
@@ -58,7 +58,7 @@ def make_address_portion(start_address)
 end
 
 def make_data_portion(data_segment)
-  data_segment.map { |byte| to_hex(byte) }.reduce { |memo, byte| memo + byte}
+  data_segment.map { |byte| to_hex(byte) }.reduce { |memo, byte| memo + byte }
 end
 
 def make_checksum_portion(data_segment, start_address)

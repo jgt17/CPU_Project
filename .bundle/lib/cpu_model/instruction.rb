@@ -56,8 +56,9 @@ class Instruction
   def next_from?(other)
     return false unless other.is_a? Instruction
     return false unless @expanded_opcode.nil? == other.expanded_opcode.nil?
+    return @opcode - other.opcode == 1 if @expanded_opcode.nil?
 
-    @expanded_opcode.nil? ? @opcode - other.opcode == 1 : @opcode == other.opcode && @expanded_opcode - other.expanded_opcode == 1
+    @opcode == other.opcode && @expanded_opcode - other.expanded_opcode == 1
   end
 
   def self.parse_opcode(code)
